@@ -26,7 +26,7 @@ This project plans to send the serial information to the lora module on the UAV 
   
 # Points that must be mentioned
   
-* Since this project is still in the PPT stage, the content may have big mistakes and make big changes.
+* Since this project is still in the early stage, the content may have big mistakes and make big changes.
 * Since both authors are high school students, and one of them is a residential student, updates of the project may be very unstable.
 * Due to inexperience, some contents in the project may not follow the reproduction or open source regulations. If you accidentally violate your rights, please contact us voluntarily and we will make changes.
 * The name of this project is only temporary and may be changed in the future.
