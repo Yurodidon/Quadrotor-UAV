@@ -6,7 +6,7 @@
 
 > Since this project is still in the PPT stage, the rest of the content may be very buggy and subject to major changes.
 
-The purpose of this project is not to create a high performance, advanced quadcopter drone, but simply to document their own learning journey and, if possible, provide experience for others with similar interests. As a result, there may be a lot of ludicrous mistakes in this project, <del>and while there may not be many people reading it</del>, we hope you will be kind enough to listen to your comments.
+The purpose of this project is not to create a high performance, advanced quadcopter drone, but simply to document their own learning journey and, if possible, provide experience for others with similar interests. As a result, there may be a lot of ludicrous mistakes in this project, even though I don't think many people will check out our project, we will be kind enough to listen to your comments.
 
 # General Contents
 
