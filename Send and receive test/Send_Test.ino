@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial RCSerial(2, 3);
+SoftwareSerial RCSerial(2, 3);    //3 to RX,2 to TX
 
 uint16_t temp;
 
