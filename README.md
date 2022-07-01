@@ -2,6 +2,8 @@
    
 # DIY-Aircraft
 
+###  English | [中文](README.zh-CN.md)
+
 > This project was created by two high school students on a whim
 
 > Since this project is still in the early stage, the rest of the content may be very buggy and subject to major changes.
