@@ -51,7 +51,7 @@ void updateThrottle(Throttle_Arg throttle, unsigned long micro) {
     int throttles[4] = {0};
     for(int i = 0;i < 4;i++) { throttles[i] = throttle.throttle[i]; }
     
-    for(int i = 0;i < 1;i++) {
+    for(int i = 0;i < 4;i++) {
         if(previousLev[i] == 0 && micro - previousUpd[i] >= 10000 - throttles[i]) {
             digitalWrite(ESC_PINS[i], HIGH);
             previousLev[i] = 1; previousUpd[i] = micro;
