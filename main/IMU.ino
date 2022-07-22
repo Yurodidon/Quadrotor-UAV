@@ -56,9 +56,8 @@ bool receiveRaw(uint8_t cur) {
 }
 
 DataPack data;
-DataPack receive(bool ReciveAll) {
-    // Note: for calculate PID effectly, if ReciveAll==False, this function will return
-    // immdeately after obtaining complete Attitude Angle data from IMU
+DataPack receive() {
+
     if(IMU_available()) {
         uint8_t cur = getData();
         bool res = receiveRaw(cur);
@@ -68,19 +67,33 @@ DataPack receive(bool ReciveAll) {
 }
 
 void decodeData(DataPack* data) {
-    switch(raw.ID) {
-    case 1: //ID==0x01, Attitude Angle
-        AttitudeAngle angle = decodeAng();
+    // Note: it seems that switch does not work
+    if(raw.ID == 1) { //ID==0x01, Altitude Angle
+        AltitudeAngle angle = decodeAng();
         data->angle = angle;
-        break;
-    
-    default:
-        break;
+    }
+    if(raw.ID == 2) { //ID==0x02, Quaternion
+        Quaternion qua = decodeQua();
+        data->qua = qua;
+    }
+    if(raw.ID == 3) { //ID==0x03, Acceleration & Gyro
+        Acceleration acc = decodeAcc();
+        data->acc = acc;
+    }
+    if(raw.ID == 4) { //ID==0x04, Meganetic & temp
+        Meganetic meg = decodeMeg();
+        data->meg = meg;
+    }
+    if(raw.ID == 5) { //ID==0x05, Altitude & pressure & temp
+        Altitude alt = decodeAlt();
+        data->alt = alt;
     }
 }
 
-AttitudeAngle decodeAng() {
-    AttitudeAngle angle;
+
+// Angles
+AltitudeAngle decodeAng() {
+    AltitudeAngle angle;
     int data[MAX_LEN] = {0};
     for(int i = 0;i < raw.len;i++) {
         data[i] = raw.data[i];
@@ -92,19 +105,60 @@ AttitudeAngle decodeAng() {
     return angle;
 }
 
-
-void decodeQua() {
-    
+// Quaternion
+Quaternion decodeQua() {
+    Quaternion qua;
+    int data[MAX_LEN] = {0};
+    for(int i = 0;i < raw.len;i++) {
+        data[i] = raw.data[i];
+    }
+    qua.q0 = (float)((int16_t)(data[1] << 8) | data[0]) / 32768;
+    qua.q1 = (float)((int16_t)(data[3] << 8) | data[2]) / 32768;
+    qua.q2 = (float)((int16_t)(data[5] << 8) | data[4]) / 32768;
+    qua.q3 = (float)((int16_t)(data[7] << 8) | data[6]) / 32768;
+    return qua;
 }
 
-void decodeAcc() {
-    
+// Acceleration
+Acceleration decodeAcc() {
+    Acceleration acc;
+    int data[MAX_LEN] = {0};
+    for(int i = 0;i < raw.len;i++) {
+        data[i] = raw.data[i];
+    }
+    // note: the unit of acc is g, 
+    acc.ACCx = (float)((int16_t)(data[1] << 8) | data[0]) / 32768 * ACC_RANGE;
+    acc.ACCy = (float)((int16_t)(data[3] << 8) | data[2]) / 32768 * ACC_RANGE;
+    acc.ACCz = (float)((int16_t)(data[5] << 8) | data[4]) / 32768 * ACC_RANGE;
+    acc.Gyrox = (float)((int16_t)(data[7] << 8) | data[6]) / 32768 * GYRO_RANGE;
+    acc.Gyroy = (float)((int16_t)(data[9] << 8) | data[8]) / 32768 * GYRO_RANGE;
+    acc.Gyroz = (float)((int16_t)(data[11] << 8) | data[10]) / 32768 * GYRO_RANGE;
+    return acc;
 }
 
-void decodeMeg() {
-    
+// Megnetic
+Meganetic decodeMeg() {
+    Meganetic meg;
+    int data[MAX_LEN] = {0};
+    for(int i = 0;i < raw.len;i++) {
+        data[i] = raw.data[i];
+    }
+    meg.Mx = (int16_t)(data[1] << 8) | data[0];
+    meg.My = (int16_t)(data[3] << 8) | data[2];
+    meg.Mz = (int16_t)(data[5] << 8) | data[4];
+    meg.T = (float)((int16_t)(data[7] << 8) | data[6]) / 100;
+    return meg;
 }
 
-void decodeAtt() {
-    
+// Altitude
+Altitude decodeAlt() {
+    Altitude alt;
+    int data[MAX_LEN] = {0};
+    for(int i = 0;i < raw.len;i++) {
+        data[i] = raw.data[i];
+    }
+    alt.P = (int32_t)(data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
+    alt.A = (int32_t)(data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];
+    alt.T = (float)((int16_t)(data[9] << 8) | data[8]) / 100;
+    return alt;
 }

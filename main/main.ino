@@ -13,10 +13,10 @@ void setup() {
 unsigned long previous = 0;
 
 void loop() {
-    DataPack dp = receive(false);
+    DataPack dp = receive();
 
-    if(dp.angle.ready && millis() - previous >= 500) {
-        Serial.println(dp.angle.Pitch);
+    if(dp.angle.ready && millis() - previous >= 100) {
+//        Serial.println(dp..ACCz);
         for(int i = 0;i < 4;i++) arg.throttle[i] = restrictThrottle(ESC_INITIAL_THROTTLE + (int)(abs(dp.angle.Pitch) / 90.0 * 1000.0));
         previous = millis();
     }

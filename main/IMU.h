@@ -7,6 +7,8 @@
     #define IMU_BAUD_RATE 19200
     #define IMU_RX 8
     #define IMU_TX 9
+    #define ACC_RANGE 4
+    #define GYRO_RANGE 2000
 
 
     struct RawData {
@@ -16,7 +18,7 @@
         uint8_t sum;
     };
 
-    struct AttitudeAngle {
+    struct AltitudeAngle {
         float Roll;
         float Pitch;
         float Yaw;
@@ -30,27 +32,29 @@
         float q3;
     };
 
+    // the acceleration is in unit of G=9.8ms-2 
+    // so ACC == 1 --> no acceleration
     struct Acceleration {
-        int16_t Ax, Gx;
-        float ACCx, gyro;
+        float ACCx, ACCy, ACCz;
+        float Gyrox, Gyroy, Gyroz;
     };
 
     struct Meganetic {
-        int16_t Mx;
+        int16_t Mx, My, Mz;
         float T;
     };
 
-    struct Attitude {
-        int32_t P, A;
+    struct Altitude {
+        int32_t P, A; // NOTE: the unit of A(ltitude) is 
         float T;
     };
 
     struct DataPack {
-        AttitudeAngle angle;
+        AltitudeAngle angle;
         Quaternion qua;
         Acceleration acc;
         Meganetic meg;
-        Attitude att;
+        Altitude alt;
         bool avaliable;
     };
 
@@ -58,12 +62,12 @@
     bool IMU_available();
     uint8_t getData();
     bool receiveRaw(uint8_t cur);
-    DataPack receive(bool ReciveAll);
+    DataPack receive();
     void decodeData(DataPack* data);
-    AttitudeAngle decodeAng();
-    void decodeQua();
-    void decodeAcc();
-    void decodeMeg();
-    void decodeAtt();
+    AltitudeAngle decodeAng();
+    Quaternion decodeQua();
+    Acceleration decodeAcc();
+    Meganetic decodeMeg();
+    Altitude decodeAlt();
 
 #endif

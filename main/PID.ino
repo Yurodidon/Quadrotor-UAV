@@ -1,7 +1,7 @@
 #include "PID.h"
 
 void Calc_err(float* angles, float* goals);
-Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AttitudeAngle angle, AttitudeAngle goal);
+Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AltitudeAngle angle, AltitudeAngle goal);
 
 float restrictPID(float a) {
     if(a < MIN_PID) {
@@ -15,7 +15,7 @@ float restrictPID(float a) {
 
 
 
-Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AttitudeAngle angle, AttitudeAngle goal) {
+Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AltitudeAngle angle, AltitudeAngle goal) {
     // cur_throttle: current throttle
     // angle --> yaw, pitch, roll from IMU
     // goal --> set angle, depends on flying performance, {0, 0, 0} for level flight
