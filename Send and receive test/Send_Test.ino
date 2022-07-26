@@ -16,10 +16,6 @@ int16_t readInt() {
     if (Serial.available()) {
       rec = Serial.read();
       if (rec < '0' || rec > '9') {
-        if (num < 1000 || num > 2000) {
-          num = 1000;
-          return num;
-        }
         return num;
       }
       num = num * 10 + (rec - '0');
