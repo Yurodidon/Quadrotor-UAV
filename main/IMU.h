@@ -1,10 +1,10 @@
 #ifndef _IMU_H_
 #define _IMU_H_
   
-    #include<AltSoftSerial.h>
+    #include<NeoSWSerial.h>
 
     #define MAX_LEN 100
-    #define IMU_BAUD_RATE 19200
+    #define IMU_BAUD_RATE 38400
     #define IMU_RX 8
     #define IMU_TX 9
     #define ACC_RANGE 4
@@ -22,7 +22,7 @@
         float Roll;
         float Pitch;
         float Yaw;
-        bool ready; //Refer to recieve function to see why a bool value is placed here
+        bool ready;
     };
 
     struct Quaternion {
@@ -30,6 +30,7 @@
         float q1;
         float q2;
         float q3;
+        bool ready;
     };
 
     // the acceleration is in unit of G=9.8ms-2 
@@ -37,16 +38,19 @@
     struct Acceleration {
         float ACCx, ACCy, ACCz;
         float Gyrox, Gyroy, Gyroz;
+        bool ready;
     };
 
     struct Meganetic {
         int16_t Mx, My, Mz;
         float T;
+        bool ready;
     };
 
     struct Altitude {
         int32_t P, A; // NOTE: the unit of A(ltitude) is 
         float T;
+        bool ready;
     };
 
     struct DataPack {
@@ -55,10 +59,10 @@
         Acceleration acc;
         Meganetic meg;
         Altitude alt;
-        bool avaliable;
+        bool available;
     };
 
-    void IMU_initialize();
+    DataPack IMU_initialize();
     bool IMU_available();
     uint8_t getData();
     bool receiveRaw(uint8_t cur);

@@ -15,19 +15,23 @@ float restrictPID(float a) {
 
 
 
-Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AltitudeAngle angle, AltitudeAngle goal) {
+Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, DataPack cur, DataPack goal) {
     // cur_throttle: current throttle
-    // angle --> yaw, pitch, roll from IMU
-    // goal --> set angle, depends on flying performance, {0, 0, 0} for level flight
-    Throttle_Arg throttle; 
-    float angles[3] = {angle.Yaw, angle.Pitch, angle.Roll};
-    float goals[3] = {goal.Yaw, goal.Pitch, goal.Roll};
+    // cur --> yaw, pitch, roll, z-Acc from IMU
+    // goal --> set configuration, depends on flying performance.
+    Throttle_Arg throttle;
+    // Extract data from DataPack
+    AltitudeAngle angle = cur.angle, goalAngle = goal.angle;
+    Acceleration acc = cur.acc, goalAcc = goal.acc;
     
-    Calc_err(angles, goals);
+    float curs[4] = {angle.Yaw, angle.Pitch, angle.Roll, acc.ACCz};
+    float goals[4] = {goalAngle.Yaw, goalAngle.Pitch, goalAngle.Roll, goalAcc.ACCz};
+    
+    Calc_err(curs, goals);
 
     // Calc PID. 
-    float pid[3] = {0.0, 0.0, 0.0};
-    for(int i = 0;i < 3;i++) {
+    float pid[4] = {0.0, 0.0, 0.0, 0.0};
+    for(int i = 0;i < 4;i++) {
         pid[i] = P[i] * err[i] + I[i] * Sum_err[i] + D[i] * Diff_err[i];
         pid[i] = restrictPID(pid[i]);
     }
@@ -35,7 +39,7 @@ Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AltitudeAngle angle, AltitudeAn
     // Calc corresponds throttle, for further adjustment
     for(int i = 0;i < 4;i++) {
         throttle.throttle[i] = cur_throttle.throttle[i];
-        for(int j = 0;j < 3;j++) {
+        for(int j = 0;j < 4;j++) {
             throttle.throttle[i] += mappingMat[i][j] * pid[j];
         }
     }
@@ -43,10 +47,10 @@ Throttle_Arg Calc_PID(Throttle_Arg cur_throttle, AltitudeAngle angle, AltitudeAn
     return throttle;
 }
 
-void Calc_err(float* angles, float* goals) {
-    for(int i = 0;i < 3;i++) {
+void Calc_err(float* cur, float* goals) {
+    for(int i = 0;i < 4;i++) {
         //Calc four errors. for PID
-        err[i] = angles[i] - goals[i];
+        err[i] = cur[i] - goals[i];
         Sum_err[i] += err[i];
         Diff_err[i] = err[i] - Pre_err[i];
         Pre_err[i] = err[i];

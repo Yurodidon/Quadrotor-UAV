@@ -4,29 +4,31 @@ void ESC_initialize() {
     for(int i = 0;i < 4;i++) {
         pinMode(ESC_PINS[i], OUTPUT);
     }
+}
 
+void Throttle_set() {
     // maximum throttle 2 sec, minimum throttle 1 sec
     // to initialize ESC
     for(int i = 0;i < 220;i++) {
         for(int j = 0;j < 4;j++) { 
             setPWM(ESC_PINS[j], HIGH);
         }
-        delayMicroseconds(2000);
+        delayMicroseconds(ESC_MAX_THROTTLE);
         for(int j = 0;j < 4;j++) { 
             setPWM(ESC_PINS[j], LOW);
         }
-        delayMicroseconds(10000 - 2000);
+        delayMicroseconds(10000 - ESC_MAX_THROTTLE);
     }
 
     for(int i = 0;i < 110;i++) {
         for(int j = 0;j < 4;j++) { 
             setPWM(ESC_PINS[j], HIGH);
         }
-        delayMicroseconds(1000);
+        delayMicroseconds(ESC_MIN_THROTTLE);
         for(int j = 0;j < 4;j++) { 
             setPWM(ESC_PINS[j], LOW);
         }
-        delayMicroseconds(10000 - 1000);
+        delayMicroseconds(10000 - ESC_MIN_THROTTLE);
     }
 }
 
@@ -47,15 +49,14 @@ unsigned long previousUpd[4] = {0, 0, 0, 0};
 int previousLev[4] = {0, 0, 0, 0};
 
 // functions implemented by micros(), with problem of overflow after 70mins
-void updateThrottle(Throttle_Arg throttle, unsigned long micro) {
-    int throttles[4] = {0};
-    for(int i = 0;i < 4;i++) { throttles[i] = throttle.throttle[i]; }
+void updateThrottle(Throttle_Arg throttle) {
     
     for(int i = 0;i < 4;i++) {
-        if(previousLev[i] == 0 && micro - previousUpd[i] >= 10000 - throttles[i]) {
+        unsigned long micro = micros();
+        if(previousLev[i] == 0 && micro - previousUpd[i] >= 10000 - throttle.throttle[i]) {
             digitalWrite(ESC_PINS[i], HIGH);
             previousLev[i] = 1; previousUpd[i] = micro;
-        } else if(previousLev[i] == 1 && micro - previousUpd[i] >= throttles[i]) {
+        } else if(previousLev[i] == 1 && micro - previousUpd[i] >= throttle.throttle[i]) {
             digitalWrite(ESC_PINS[i], LOW);
             previousLev[i] = 0; previousUpd[i] = micro;
         }

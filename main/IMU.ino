@@ -1,13 +1,21 @@
 #include "IMU.h"
 
-AltSoftSerial IMU; // 8 is RX, 9 is TX
+NeoSWSerial IMU(IMU_RX, IMU_TX); // 8 is RX, 9 is TX
 uint8_t RecState = 0, index = 0, check = 0;
 RawData raw;
+DataPack data;
 
-void IMU_initialize() {
+DataPack IMU_initialize() {
     pinMode(IMU_RX, INPUT);
     pinMode(IMU_TX, OUTPUT);
     IMU.begin(IMU_BAUD_RATE);
+    
+    while(!data.available) {
+        data = receive();
+        //We require the UAV to be placed horizontally and stabally before starting up
+        //To find out the stable value for Pitch & Roll.
+    }
+    return data;
 }
 
 bool IMU_available() {
@@ -55,7 +63,6 @@ bool receiveRaw(uint8_t cur) {
     return false;
 }
 
-DataPack data;
 DataPack receive() {
 
     if(IMU_available()) {
@@ -88,6 +95,9 @@ void decodeData(DataPack* data) {
         Altitude alt = decodeAlt();
         data->alt = alt;
     }
+    if(data->angle.ready && data->qua.ready && data->acc.ready && data->meg.ready && data->alt.ready) {
+        data->available = true;
+    }
 }
 
 
@@ -116,6 +126,7 @@ Quaternion decodeQua() {
     qua.q1 = (float)((int16_t)(data[3] << 8) | data[2]) / 32768;
     qua.q2 = (float)((int16_t)(data[5] << 8) | data[4]) / 32768;
     qua.q3 = (float)((int16_t)(data[7] << 8) | data[6]) / 32768;
+    qua.ready = true;
     return qua;
 }
 
@@ -133,6 +144,7 @@ Acceleration decodeAcc() {
     acc.Gyrox = (float)((int16_t)(data[7] << 8) | data[6]) / 32768 * GYRO_RANGE;
     acc.Gyroy = (float)((int16_t)(data[9] << 8) | data[8]) / 32768 * GYRO_RANGE;
     acc.Gyroz = (float)((int16_t)(data[11] << 8) | data[10]) / 32768 * GYRO_RANGE;
+    acc.ready = true;
     return acc;
 }
 
@@ -147,6 +159,7 @@ Meganetic decodeMeg() {
     meg.My = (int16_t)(data[3] << 8) | data[2];
     meg.Mz = (int16_t)(data[5] << 8) | data[4];
     meg.T = (float)((int16_t)(data[7] << 8) | data[6]) / 100;
+    meg.ready = true;
     return meg;
 }
 
@@ -160,5 +173,6 @@ Altitude decodeAlt() {
     alt.P = (int32_t)(data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
     alt.A = (int32_t)(data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];
     alt.T = (float)((int16_t)(data[9] << 8) | data[8]) / 100;
+    alt.ready = true;
     return alt;
 }
