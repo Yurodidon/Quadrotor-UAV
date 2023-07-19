@@ -2,54 +2,79 @@
 #include "ESC.h"
 #include "PID.h"
 
-Throttle_Arg arg;
 // Stable configuration: we ask the UAV to be placed horizontally before starting up.
-DataPack stable_conf, goal; 
+DataPack stable_conf, goal;
 
-void setup() {  
-    ESC_initialize();
-    stable_conf = IMU_initialize();
-
-    goal = stable_conf;
-    // Set throttle for the first time.
-    // DO NOT OPEN THIS WHEN ALL PROPELLERS ARE ON
-    // DANGEROUS! DANGEROUS!!
-    Throttle_set(); 
-
-
-    Serial.begin(115200);
-    // NOTE: After initialization, throttles need to be set to minimum at every starting up
-    for(int i = 0;i < 4;i++) arg.throttle[i] = ESC_MIN_THROTTLE;
-}
 
 unsigned long previous = 0;
 bool IfGo = true;
 char cur_command = 'h';
+DataPack past;
+
+int16_t readInt() {
+  char rec = '0';
+  int16_t num = 0;
+  while (true) {
+    if (Serial.available()) {
+      rec = Serial.read();
+      if (rec < '0' || rec > '9') {
+        if (num < 1000 || num > 2000) {
+          num = 1000;
+          return num;
+        }
+        return num;
+      }
+      num = num * 10 + (rec - '0');
+    }
+  }
+}
+
+
+void setup() {
+  Serial.begin(115200);
+
+  ESC_initialize();
+  stable_conf = IMU_initialize();
+  past = stable_conf;
+
+  goal = stable_conf;
+
+
+  // NOTE: After initialization, throttles need to be set to minimum at every starting up
+  for (int i = 0; i < 4; i++) arg.throttle[i] = ESC_MIN_THROTTLE;
+}
 
 void loop() {
-//    DataPack dp = receive();
-//    
-//    // NOTE: The reason to pick interval as 7 millionsecond is because one pulse of PWM is 10000microseconds
-//    // That is 10 milliseconds, and the time for high electrical level is 2000 micro at maximum (2 millionsecond)
-//    // And therefore a 7 millionsecond interval between calculation of PID will always fall in the time that the PWM 
-//    // is at low electrical level, and therefore will not disturb the updatingThrottle function.
-//    if(dp.available && millis() - previous >= 7 && IfGo) {
-//        if(Serial.available()) {
-//            char cmd = Serial.read();
-//            if(cmd == 'v') { // Stop
-//                for(int i = 0;i < 4;i++) arg.throttle[i] = ESC_MIN_THROTTLE;
-//                IfGo = false;
-//            }
-//            if(cmd == 'g') { // Go
-//                for(int i = 0;i < 4;i++) arg.throttle[i] = ESC_INITIAL_THROTTLE;
-//                IfGo = true;
-//            }
-//        }
-//        // Calculate PID.
-//        
-//        
-//        previous = millis();
-//    }
+  // Codes used to initialize ESCs
+  if (Serial.available() > 0) {
+    int cur_thro = readInt();
+    if (cur_thro < 1000 || cur_thro > 2000) {
 
-    updateThrottle(arg);
+    } else {
+      for (int i = 0; i < 4; i++) {
+        arg.throttle[i] = cur_thro;
+      }
+    }
+    Serial.println(cur_thro);
+  }
+
+  // for(int i = 0;i < 4;i++) {
+  //   setPWM(i, cur_thro);
+  // }
+
+
+  if (millis() - previous >= 100) {
+    DataPack dp = receive();
+
+    past = filter(dp, past);
+
+    float Yaw_cur = dp.angle.Yaw;
+
+    // Serial.println(Yaw_cur, 2);
+    previous = millis();
+  }
+
+
+
+  updateThrottle(arg);
 }

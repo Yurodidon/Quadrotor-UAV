@@ -3,6 +3,7 @@
 
     #include "PID.h"
     #include "IMU.h"
+    #include<Servo.h>
     #include<Arduino.h>
 
     #define ESC_MAX_THROTTLE 2000
@@ -26,6 +27,8 @@
 
     // ESC 0 --> 5, ESC 1 --> 4, ESC 2 --> 2, ESC 3 --> 3
     int ESC_PINS[4] = {5, 4, 2, 3};
+    Servo servos[4];
+    Throttle_Arg arg;
 
     void ESC_initialize();
     void setPWM(int pin, int value);

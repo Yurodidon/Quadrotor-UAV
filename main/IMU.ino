@@ -10,11 +10,9 @@ DataPack IMU_initialize() {
     pinMode(IMU_TX, OUTPUT);
     IMU.begin(IMU_BAUD_RATE);
     
-    while(!data.available) {
-        data = receive();
+    data = receive();
         //We require the UAV to be placed horizontally and stabally before starting up
         //To find out the stable value for Pitch & Roll.
-    }
     return data;
 }
 
@@ -64,14 +62,35 @@ bool receiveRaw(uint8_t cur) {
 }
 
 DataPack receive() {
-
-    if(IMU_available()) {
-        uint8_t cur = getData();
-        bool res = receiveRaw(cur);
-        if(res) decodeData(&data);
+    while(!data.available) {
+        if(IMU_available()) {
+            int cur = getData();
+            if(cur != 0x55 && RecState == 0) continue;
+            bool res = receiveRaw(cur);
+            if(res) decodeData(&data);
+        }
     }
+    data.available = false;
     return data;
 }
+
+bool checkValidate(float cur, float past) {
+    if(abs(cur - past) > abs(cur) * TOLERATE) {
+        return false;
+    }
+    return true;
+}
+
+// Data for AltitudeAngle is important for pid, so we are going to filter out those invalidate (wrong) data
+DataPack filter(DataPack cur, DataPack past) {
+    if(!checkValidate(cur.angle.Yaw, past.angle.Yaw)) cur.angle.Yaw = past.angle.Yaw;
+    if(!checkValidate(cur.angle.Pitch, past.angle.Pitch)) cur.angle.Pitch = past.angle.Pitch;
+    if(!checkValidate(cur.angle.Roll, past.angle.Roll)) cur.angle.Roll = past.angle.Roll;
+
+    return cur;
+}
+
+
 
 void decodeData(DataPack* data) {
     // Note: it seems that switch does not work

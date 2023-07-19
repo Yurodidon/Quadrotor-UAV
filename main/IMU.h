@@ -2,11 +2,13 @@
 #define _IMU_H_
   
     #include<NeoSWSerial.h>
+    #include "ESC.h"
 
     #define MAX_LEN 100
     #define IMU_BAUD_RATE 38400
     #define IMU_RX 8
     #define IMU_TX 9
+    #define TOLERATE 10
     #define ACC_RANGE 4
     #define GYRO_RANGE 2000
 
@@ -73,5 +75,6 @@
     Acceleration decodeAcc();
     Meganetic decodeMeg();
     Altitude decodeAlt();
+    DataPack filter(DataPack cur, DataPack past);
 
 #endif
